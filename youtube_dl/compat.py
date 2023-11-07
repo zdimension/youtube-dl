@@ -61,15 +61,15 @@ try:
     _req = compat_urllib_request.Request
     _req('http://127.0.0.1', method='GET')
 except TypeError:
-    class _request(object):
-        def __new__(cls, url, *args, **kwargs):
-            method = kwargs.pop('method', None)
-            r = _req(url, *args, **kwargs)
-            if method:
-                r.get_method = types.MethodType(lambda _: method, r)
-            return r
+    old_init = _req.__init__
 
-    compat_urllib_request.Request = _request
+    def new_init(self, *args, **kwargs):
+        method = kwargs.pop('method', None)
+        old_init(self, *args, **kwargs)
+        if method:
+            self.get_method = types.MethodType(lambda _: method, self)
+
+    _req.__init__ = new_init
 
 
 try:
